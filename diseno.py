@@ -12,6 +12,9 @@ TEXTO = "#e6edf7"
 ESTILOS = """
 <style>
 [data-testid="stMainBlockContainer"]{padding-left:3rem;padding-right:3rem;max-width:none}
+[data-testid="stSidebarNavLink"]{min-height:44px;padding-top:6px;padding-bottom:6px}
+[data-testid="stSidebarNavLink"] p{font-size:17px}
+[data-testid="stSidebarNavLink"] [data-testid="stIconMaterial"]{font-size:21px}
 .d-eyebrow{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#38bdf8;font-weight:600}
 .d-persona{background:#13233f;border:1px solid #22395f;border-radius:16px;padding:18px}
 .d-persona .d-para{display:block;font-size:11px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #22395f}
