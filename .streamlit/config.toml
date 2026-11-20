@@ -1,0 +1,24 @@
+# Colores y letras de la app. Streamlit lee este archivo al abrir la app.
+# [theme] es la parte principal y [theme.sidebar] la barra lateral.
+
+[theme]
+base = "dark"
+primaryColor = "#38bdf8"
+backgroundColor = "#0b1628"
+secondaryBackgroundColor = "#13233f"
+textColor = "#e6edf7"
+borderColor = "#1e3354"
+linkColor = "#38bdf8"
+baseRadius = "0.75rem"
+font = "'Inter':https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+headingFont = "'Sora':https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&display=swap"
+headingFontWeights = [700, 600, 600]
+headingFontSizes = ["2.4rem", "1.6rem", "1.2rem"]
+
+[theme.sidebar]
+backgroundColor = "#0f1d35"
+secondaryBackgroundColor = "#1a2e52"
+textColor = "#c3d1e6"
+primaryColor = "#38bdf8"
+borderColor = "#1f3356"
+linkColor = "#38bdf8"
