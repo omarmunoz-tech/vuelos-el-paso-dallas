@@ -21,12 +21,15 @@ st.set_page_config(page_title="Vuelos de El Paso a Dallas", page_icon="✈️", 
 diseno.estilos()
 
 # Las respuestas se calculan una vez y se usan en varias páginas
-aerolinea = logica.aerolinea_recomendada(logica.vuelos_dallas)
+aerolinea = logica.aerolinea_recomendada(logica.vuelos_dallas, logica.aerolineas)
 porcentaje_aerolinea = logica.porcentaje_de_aerolinea(logica.vuelos_dallas, aerolinea)
-turno = logica.turno_recomendado(logica.vuelos_dallas)
-manana = logica.porcentaje_de_manana(logica.vuelos_dallas)
-tarde = logica.porcentaje_de_tarde(logica.vuelos_dallas)
-margen = logica.margen_recomendado(logica.vuelos_que_llegaron)
+horario = logica.horario_recomendado(logica.vuelos_dallas, logica.horarios)
+manana = logica.porcentaje_de_horario(logica.vuelos_dallas, "Mañana")
+tarde = logica.porcentaje_de_horario(logica.vuelos_dallas, "Tarde")
+margen = logica.margen_recomendado(logica.vuelos_dallas, logica.margenes)
+
+# Cómo se escribe en la app cada margen de logica.margenes (en minutos)
+nombres_de_margen = {30: "30 minutos", 60: "1 hora", 90: "1 hora y media", 120: "2 horas"}
 
 
 def inicio():
@@ -43,14 +46,14 @@ def inicio():
         st.page_link(pagina_1, label="Ver la comparación", icon=":material/arrow_forward:")
     with columna_2:
         st.caption("HORARIO")
-        st.markdown(f"## :primary[{turno.capitalize()}]")
+        st.markdown(f"## :primary[{horario}]")
         st.write(f"{manana}% de los vuelos que salen antes de las 12:00 llegan a tiempo.")
         st.page_link(pagina_2, label="Ver la comparación", icon=":material/arrow_forward:")
     with columna_3:
         st.caption("MARGEN")
-        st.markdown(f"## :primary[{margen} min]")
-        st.write(f"Dejando {margen} minutos entre la llegada del vuelo y la junta, llega a tiempo en 9 de cada 10 vuelos.")
-        st.page_link(pagina_3, label="Ver el cálculo", icon=":material/arrow_forward:")
+        st.markdown(f"## :primary[{nombres_de_margen[margen]}]")
+        st.write(f"Con {nombres_de_margen[margen]} de margen, sin contar el trayecto a la junta, llega a tiempo en 9 de cada 10 vuelos.")
+        st.page_link(pagina_3, label="Ver la comparación", icon=":material/arrow_forward:")
 
     st.divider()
     st.caption(f"Se analizaron los {len(logica.vuelos_dallas):,} vuelos que salieron de El Paso (ELP) a Dallas Love Field (DAL) "
@@ -61,11 +64,8 @@ def pregunta_1():
     diseno.encabezado("Pregunta 1 · Aerolínea", "¿Con qué aerolínea es más probable llegar a tiempo?",
                       aerolinea, f"{porcentaje_aerolinea}% de sus vuelos de El Paso a Dallas llegan a tiempo, el porcentaje más alto de las tres aerolíneas.")
 
-    nombres = ["American", "Southwest", "Frontier"]
-    porcentajes = []
-    for nombre in nombres:
-        porcentajes.append(logica.porcentaje_de_aerolinea(logica.vuelos_dallas, nombre))
-    diseno.grafica_de_barras("Porcentaje de vuelos de ELP a Dallas que llegan a tiempo, por aerolínea", nombres, porcentajes, aerolinea)
+    diseno.grafica_de_barras("Porcentaje de vuelos de ELP a Dallas que llegan a tiempo, por aerolínea",
+                             logica.aerolineas, logica.porcentajes_aerolineas, aerolinea)
 
     diseno.como_se_calculo([
         ["Separar los vuelos a Dallas", f"De los {len(logica.filas):,} vuelos del archivo se toman los {len(logica.vuelos_dallas):,} que salen de El Paso a Dallas (DAL o DFW)."],
@@ -77,13 +77,10 @@ def pregunta_1():
 
 def pregunta_2():
     diseno.encabezado("Pregunta 2 · Horario", "¿Conviene más volar en la mañana o en la tarde?",
-                      turno.capitalize(), f"{manana}% de los vuelos de la mañana llegan a tiempo, contra {tarde}% de los de la tarde.")
+                      horario, f"{manana}% de los vuelos de la mañana llegan a tiempo, contra {tarde}% de los de la tarde.")
 
-    if turno == "mañana":
-        destacado = "Mañana"
-    else:
-        destacado = "Tarde"
-    diseno.grafica_de_barras("Porcentaje de vuelos de ELP a Dallas que llegan a tiempo, por horario de salida", ["Mañana", "Tarde"], [manana, tarde], destacado)
+    diseno.grafica_de_barras("Porcentaje de vuelos de ELP a Dallas que llegan a tiempo, por horario de salida",
+                             logica.horarios, logica.porcentajes_horarios, horario)
 
     diseno.como_se_calculo([
         ["Separar por horario", f"Los {len(logica.vuelos_dallas):,} vuelos a Dallas se dividen en los que salen antes de las 12:00 (mañana) y los que salen a las 12:00 o después (tarde)."],
@@ -93,20 +90,22 @@ def pregunta_2():
 
 
 def pregunta_3():
-    diseno.encabezado("Pregunta 3 · Margen", "¿Cuánto tiempo dejar entre la llegada del vuelo y la junta?",
-                      f"{margen} min", f"Si deja {margen} minutos entre la hora de llegada del vuelo y la junta, llega a tiempo en 9 de cada 10 vuelos.")
+    diseno.encabezado("Pregunta 3 · Margen", "¿Con cuánta anticipación debe llegar el vuelo?",
+                      nombres_de_margen[margen],
+                      f"Con un vuelo programado para aterrizar {nombres_de_margen[margen]} antes de cuando necesita salir del aeropuerto "
+                      "hacia la junta, llega a tiempo en 9 de cada 10 vuelos.")
 
-    margenes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60]
-    porcentajes = logica.porcentajes_por_margen(logica.vuelos_que_llegaron, margenes)
-    diseno.grafica_de_linea("Porcentaje de vuelos de ELP a Dallas con los que llega a tiempo a la junta, según el margen",
-                            margenes, porcentajes, margen, f"{margen} min", "Margen (minutos)", 90,
-                            "La línea punteada marca 9 de cada 10 vuelos.")
+    nombres = []
+    for opcion in logica.margenes:
+        nombres.append(nombres_de_margen[opcion])
+    diseno.grafica_de_barras("Porcentaje de vuelos de ELP a Dallas con los que llega a tiempo a la junta, según el margen",
+                             nombres, logica.porcentajes_margenes, nombres_de_margen[margen], en_orden_de_la_lista=True)
 
     diseno.como_se_calculo([
-        ["Quitar los vuelos que no llegaron", f"De los {len(logica.vuelos_dallas):,} vuelos a Dallas se dejan fuera los cancelados y los desviados: quedan {len(logica.vuelos_que_llegaron):,}."],
-        ["Decidir cuándo llega a tiempo a la junta", "Con un margen dado, llega a tiempo si el retraso del vuelo es igual o menor que ese margen."],
-        ["Probar márgenes", "Se prueban márgenes de 5 en 5 minutos, empezando en 0, y para cada uno se saca el porcentaje de vuelos con los que llegaría a tiempo."],
-        ["Elegir el margen", "El margen recomendado es el primero con el que llega a tiempo en al menos 9 de cada 10 vuelos."],
+        ["Definir el margen", "Es el tiempo entre la hora programada de llegada del vuelo y la hora a la que tiene que salir del aeropuerto hacia la junta. El trayecto del aeropuerto a la junta va aparte."],
+        ["Decidir cuándo llega a tiempo", "Con un margen dado, llega a tiempo si el vuelo llegó con un retraso igual o menor que ese margen. Si se canceló o se desvió, no llega."],
+        ["Sacar el porcentaje de cada margen", f"Para 30 minutos, 1 hora, 1 hora y media y 2 horas se cuenta con cuántos de los {len(logica.vuelos_dallas):,} vuelos a Dallas llegaría a tiempo."],
+        ["Elegir el margen", "Se recomienda el margen más corto con el que llega a tiempo en al menos 9 de cada 10 vuelos."],
     ])
 
 

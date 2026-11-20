@@ -92,13 +92,18 @@ def como_se_calculo(pasos):
     st.html(f'<div class="d-pasos"><div class="d-seccion">Cómo se calculó</div>{filas}</div>')
 
 
-def grafica_de_barras(titulo, nombres, valores, destacado):
+def grafica_de_barras(titulo, nombres, valores, destacado, en_orden_de_la_lista=False):
     # Barras horizontales con el valor al lado; la barra de `destacado` va en azul y las demás en gris.
+    # Las barras van de mayor a menor valor, o en el orden de `nombres` si en_orden_de_la_lista es True.
     datos = []
     for i in range(len(nombres)):
         datos.append({"nombre": nombres[i], "valor": valores[i], "etiqueta": f"{valores[i]}%", "destacado": nombres[i] == destacado})
+    if en_orden_de_la_lista:
+        orden = nombres
+    else:
+        orden = "-x"
     base = alt.Chart(alt.Data(values=datos)).encode(
-        y=alt.Y("nombre:N", sort="-x", title=None, axis=alt.Axis(labelFontSize=15, labelColor=TEXTO, labelPadding=12, domain=False, ticks=False)),
+        y=alt.Y("nombre:N", sort=orden, title=None, axis=alt.Axis(labelFontSize=15, labelColor=TEXTO, labelPadding=12, labelLimit=240, domain=False, ticks=False)),
         x=alt.X("valor:Q", title=None, axis=None, scale=alt.Scale(domain=[0, 100])),
     )
     barras = base.mark_bar(cornerRadiusEnd=6, height=26).encode(
@@ -110,25 +115,3 @@ def grafica_de_barras(titulo, nombres, valores, destacado):
     st.altair_chart(grafica.configure_view(stroke=None), width="stretch")
     st.space("small")
 
-
-def grafica_de_linea(titulo, xs, ys, x_destacado, etiqueta_destacado, titulo_x, meta, nota_meta):
-    # Línea con un punto por valor. El punto de `x_destacado` va más grande, con su etiqueta,
-    # y la línea punteada marca la meta.
-    datos = []
-    for i in range(len(xs)):
-        datos.append({"x": xs[i], "y": ys[i]})
-    minimo = min(ys) // 10 * 10
-    base = alt.Chart(alt.Data(values=datos)).encode(
-        x=alt.X("x:Q", title=titulo_x, axis=alt.Axis(values=xs, grid=False)),
-        y=alt.Y("y:Q", title=None, scale=alt.Scale(domain=[minimo, 100]), axis=alt.Axis(labelExpr="datum.value + '%'", tickCount=5)),
-    )
-    area = base.mark_area(color=AZUL, opacity=0.12, clip=True)
-    linea = base.mark_line(color=AZUL, strokeWidth=3) + base.mark_point(color=AZUL, filled=True, size=36)
-    linea_meta = alt.Chart(alt.Data(values=[{"y": meta}])).mark_rule(strokeDash=[4, 4], color="#7b8fae").encode(y="y:Q")
-    punto = alt.Chart(alt.Data(values=[{"x": x_destacado, "y": ys[xs.index(x_destacado)], "etiqueta": etiqueta_destacado}])).encode(x="x:Q", y="y:Q")
-    marca = punto.mark_point(color="#ffffff", filled=True, size=200) + punto.mark_text(dy=-18, fontSize=15, fontWeight="bold", color=TEXTO).encode(text="etiqueta:N")
-    grafica = (area + linea + linea_meta + marca).properties(height=280, padding={"left": 8, "right": 12, "top": 8, "bottom": 4})
-    st.html(f'<div class="d-seccion">{html.escape(titulo)}</div>')
-    st.altair_chart(grafica.configure_view(stroke=None), width="stretch")
-    st.caption(nota_meta)
-    st.space("small")
