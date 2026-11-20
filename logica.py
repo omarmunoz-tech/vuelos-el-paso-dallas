@@ -1,8 +1,8 @@
 # logica.py: el análisis de la app.
 # Solo ciclos, condicionales, listas y funciones.
-# Las tres preguntas usan los vuelos de El Paso a Dallas y siguen los mismos pasos:
-# sacar un porcentaje para cada opción con una función, guardar los porcentajes en
-# una lista para la gráfica y elegir la opción que conviene.
+# Las tres preguntas siguen los mismos pasos: sacar un porcentaje para cada opción
+# con una función, guardar los porcentajes en una lista para la gráfica y elegir
+# la opción que conviene.
 
 from datos import cargar
 
@@ -34,22 +34,40 @@ def porcentaje_a_tiempo(vuelos):
     return round(a_tiempo / len(vuelos) * 100, 1)
 
 
+def porcentaje_que_no_llego(vuelos):
+    # Porcentaje de vuelos que no llegaron a Dallas: se cancelaron o se desviaron.
+    # Ejemplo: porcentaje_que_no_llego(vuelos_dallas) regresa 2.4
+    no_llego = 0
+    for vuelo in vuelos:
+        if vuelo["cancelado"] == "Sí" or vuelo["desviado"] == "Sí":
+            no_llego = no_llego + 1
+    return round(no_llego / len(vuelos) * 100, 1)
+
+
 # Pregunta 1: ¿con qué aerolínea es más probable llegar a tiempo a Dallas?
+# Frontier se deja fuera: solo tiene 39 vuelos a Dallas, muy pocos para
+# compararla con American (2554) y Southwest (1763).
+
+def vuelos_de_aerolinea(vuelos, aerolinea):
+    # Los vuelos de una aerolínea.
+    # Ejemplo: len(vuelos_de_aerolinea(vuelos_dallas, "Frontier")) regresa 39
+    vuelos_de_la_aerolinea = []
+    for vuelo in vuelos:
+        if vuelo["aerolinea"] == aerolinea:
+            vuelos_de_la_aerolinea.append(vuelo)
+    return vuelos_de_la_aerolinea
+
 
 def porcentaje_de_aerolinea(vuelos, aerolinea):
     # Porcentaje a tiempo de los vuelos de una aerolínea.
     # Ejemplos: porcentaje_de_aerolinea(vuelos_dallas, "Southwest") regresa 79.1
     #           porcentaje_de_aerolinea(vuelos_dallas, "American") regresa 76.3
-    vuelos_de_aerolinea = []
-    for vuelo in vuelos:
-        if vuelo["aerolinea"] == aerolinea:
-            vuelos_de_aerolinea.append(vuelo)
-    return porcentaje_a_tiempo(vuelos_de_aerolinea)
+    return porcentaje_a_tiempo(vuelos_de_aerolinea(vuelos, aerolinea))
 
 
 def aerolinea_recomendada(vuelos, aerolineas):
     # La aerolínea con el porcentaje a tiempo más alto.
-    # American 76.3, Southwest 79.1, Frontier 69.2: se queda con Southwest.
+    # American 76.3, Southwest 79.1: se queda con Southwest.
     mejor = ""
     mayor = 0
     for aerolinea in aerolineas:
@@ -60,7 +78,7 @@ def aerolinea_recomendada(vuelos, aerolineas):
     return mejor
 
 
-aerolineas = ["American", "Southwest", "Frontier"]
+aerolineas = ["American", "Southwest"]
 
 porcentajes_aerolineas = []
 for aerolinea in aerolineas:
@@ -110,28 +128,33 @@ for horario in horarios:
 # Pregunta 3: ¿con cuánta anticipación debe llegar el vuelo?
 # El margen es el tiempo, en minutos, entre la hora programada de llegada del vuelo
 # y la hora a la que necesita salir del aeropuerto hacia la junta.
+# El margen sirve para los retrasos, no para las cancelaciones: se calcula con los
+# vuelos que sí llegaron. De los 4356 vuelos a Dallas, quedan 4253.
 
-def porcentaje_con_margen(vuelos, margen):
-    # Porcentaje de vuelos con los que llega a tiempo a la junta si deja ese margen:
-    # el vuelo llegó con un retraso igual o menor que el margen.
-    # Un vuelo cancelado o desviado no llega.
-    # Ejemplos: porcentaje_con_margen(vuelos_dallas, 30) regresa 84.3
-    #           porcentaje_con_margen(vuelos_dallas, 60) regresa 90.2
-    llega = 0
+vuelos_que_llegaron = []
+for vuelo in vuelos_dallas:
+    if vuelo["cancelado"] == "No" and vuelo["desviado"] == "No":
+        vuelos_que_llegaron.append(vuelo)
+
+
+def porcentaje_dentro_del_margen(vuelos, margen):
+    # Porcentaje de vuelos que llegaron con un retraso igual o menor que el margen.
+    # Ejemplos: porcentaje_dentro_del_margen(vuelos_que_llegaron, 30) regresa 86.3
+    #           porcentaje_dentro_del_margen(vuelos_que_llegaron, 60) regresa 92.4
+    dentro = 0
     for vuelo in vuelos:
-        if vuelo["cancelado"] == "No" and vuelo["desviado"] == "No":
-            if vuelo["retraso_llegada_min"] <= margen:
-                llega = llega + 1
-    return round(llega / len(vuelos) * 100, 1)
+        if vuelo["retraso_llegada_min"] <= margen:
+            dentro = dentro + 1
+    return round(dentro / len(vuelos) * 100, 1)
 
 
 def margen_recomendado(vuelos, margenes):
-    # El margen más corto con el que llega a tiempo en al menos 9 de cada 10 vuelos.
+    # El margen más corto con el que al menos 9 de cada 10 vuelos llegan dentro del margen.
     # Los márgenes van de menor a mayor, así que es el primero que llega a 90.
-    # 30 minutos: 84.3, 60 minutos: 90.2: se queda con 60.
+    # 30 minutos: 86.3, 60 minutos: 92.4: se queda con 60.
     recomendado = 0
     for margen in margenes:
-        if recomendado == 0 and porcentaje_con_margen(vuelos, margen) >= 90:
+        if recomendado == 0 and porcentaje_dentro_del_margen(vuelos, margen) >= 90:
             recomendado = margen
     return recomendado
 
@@ -140,4 +163,4 @@ margenes = [30, 60, 90, 120]
 
 porcentajes_margenes = []
 for margen in margenes:
-    porcentajes_margenes.append(porcentaje_con_margen(vuelos_dallas, margen))
+    porcentajes_margenes.append(porcentaje_dentro_del_margen(vuelos_que_llegaron, margen))
