@@ -1,4 +1,4 @@
-# Colores y letras de la app. Streamlit lee este archivo al abrir la app.
+# Colores y tipografía de la app. Streamlit lee este archivo al abrir la app.
 # [theme] es la parte principal y [theme.sidebar] la barra lateral.
 
 [theme]
