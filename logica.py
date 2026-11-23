@@ -62,7 +62,8 @@ def porcentaje_de_aerolinea(vuelos, aerolinea):
     # Porcentaje a tiempo de los vuelos de una aerolínea.
     # Ejemplos: porcentaje_de_aerolinea(vuelos_dallas, "Southwest") regresa 79.1
     #           porcentaje_de_aerolinea(vuelos_dallas, "American") regresa 76.3
-    return porcentaje_a_tiempo(vuelos_de_aerolinea(vuelos, aerolinea))
+    vuelos_de_la_aerolinea = vuelos_de_aerolinea(vuelos, aerolinea)
+    return porcentaje_a_tiempo(vuelos_de_la_aerolinea)
 
 
 def aerolinea_recomendada(vuelos, aerolineas):
@@ -86,22 +87,24 @@ for aerolinea in aerolineas:
 
 
 # Pregunta 2: ¿conviene más volar en la mañana o en la tarde?
-# Las horas vienen como texto con dos dígitos ("09:30"),
-# así que comparar el texto da el mismo orden que comparar la hora.
 
-def porcentaje_de_horario(vuelos, horario):
-    # Porcentaje a tiempo de los vuelos de un horario:
-    # "Mañana" si salen antes de las 12:00, "Tarde" si salen a las 12:00 o después.
-    # Ejemplos: porcentaje_de_horario(vuelos_dallas, "Mañana") regresa 85.2
-    #           porcentaje_de_horario(vuelos_dallas, "Tarde") regresa 68.6
+def vuelos_de_horario(vuelos, horario):
+    # Los vuelos de un horario: "Mañana" si salen antes de las 12,
+    # "Tarde" si salen a las 12 o después.
     vuelos_del_horario = []
     for vuelo in vuelos:
-        if vuelo["hora_salida_programada"] < "12:00":
-            horario_del_vuelo = "Mañana"
-        else:
-            horario_del_vuelo = "Tarde"
-        if horario_del_vuelo == horario:
+        if horario == "Mañana" and vuelo["hora_salida"] < 12:
             vuelos_del_horario.append(vuelo)
+        elif horario == "Tarde" and vuelo["hora_salida"] >= 12:
+            vuelos_del_horario.append(vuelo)
+    return vuelos_del_horario
+
+
+def porcentaje_de_horario(vuelos, horario):
+    # Porcentaje a tiempo de los vuelos de un horario.
+    # Ejemplos: porcentaje_de_horario(vuelos_dallas, "Mañana") regresa 85.2
+    #           porcentaje_de_horario(vuelos_dallas, "Tarde") regresa 68.6
+    vuelos_del_horario = vuelos_de_horario(vuelos, horario)
     return porcentaje_a_tiempo(vuelos_del_horario)
 
 
@@ -150,13 +153,14 @@ def porcentaje_dentro_del_margen(vuelos, margen):
 
 def margen_recomendado(vuelos, margenes):
     # El margen más corto con el que al menos 9 de cada 10 vuelos llegan dentro del margen.
-    # Los márgenes van de menor a mayor, así que es el primero que llega a 90.
-    # 30 minutos: 86.3, 60 minutos: 92.4: se queda con 60.
-    recomendado = 0
+    # Primero se guardan en una lista los márgenes que llegan a 90%. Los márgenes van
+    # de menor a mayor, así que el primero de esa lista es el más corto.
+    # 30: 86.3, 60: 92.4, 90: 94.9, 120: 96.5. La lista queda [60, 90, 120]: se queda con 60.
+    margenes_suficientes = []
     for margen in margenes:
-        if recomendado == 0 and porcentaje_dentro_del_margen(vuelos, margen) >= 90:
-            recomendado = margen
-    return recomendado
+        if porcentaje_dentro_del_margen(vuelos, margen) >= 90:
+            margenes_suficientes.append(margen)
+    return margenes_suficientes[0]
 
 
 margenes = [30, 60, 90, 120]

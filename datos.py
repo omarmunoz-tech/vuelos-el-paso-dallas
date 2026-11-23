@@ -35,7 +35,7 @@ def convertir(valor, tipo):
 
 def cargar(nombre):
     if nombre == "":
-        raise ValueError("Falta el nombre del archivo: en logica.py, ARCHIVO debe tener el nombre del CSV de la base de datos asignada.")
+        raise ValueError("Falta el nombre del archivo: en logica.py, ARCHIVO debe tener el nombre del CSV de la base de datos que te fue asignada.")
     # El archivo está en la misma carpeta que datos.py
     ruta = os.path.join(os.path.dirname(__file__), nombre)
     if not os.path.isfile(ruta):
